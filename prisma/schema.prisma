@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,14 +6,31 @@ datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
 }
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String   // "ADMIN", "PANTRY_STAFF", "DELIVERY_PERSONNEL"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Patient {
-  id          Int      @id @default(autoincrement())
-  name        String
-  age         Int
-  gender      String
-  contact     String
-  roomNumber  String
-  dietCharts  DietChart[]
+  id              Int         @id @default(autoincrement())
+  name            String
+  diseases        String
+  allergies       String
+  roomNumber      String
+  bedNumber       String
+  floorNumber     String
+  age             Int
+  gender          String
+  contact         String
+  emergencyContact String
+  dietCharts      DietChart[] // Relation to DietChart
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }
 
 model DietChart {
@@ -31,4 +42,51 @@ model DietChart {
   nightMeal           String
   ingredients         String
   specialInstructions String
+  tasks               Task[]   // Relation to Task
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  pantryStaffId Int
+  pantryStaff PantryStaff @relation(fields: [pantryStaffId], references: [id])
+  dietChartId Int
+  dietChart   DietChart @relation(fields: [dietChartId], references: [id])
+  status      String   // "PENDING", "IN_PROGRESS", "COMPLETED"
+  deliveries  Delivery[] // Relation to Delivery
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Delivery {
+  id                  Int      @id @default(autoincrement())
+  taskId              Int
+  task                Task     @relation(fields: [taskId], references: [id])
+  deliveryPersonnelId Int
+  deliveryPersonnel   DeliveryPersonnel @relation(fields: [deliveryPersonnelId], references: [id])
+  status              String   // "PENDING", "DELIVERED"
+  deliveryTime        DateTime?
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model PantryStaff {
+  id          Int      @id @default(autoincrement())
+  name        String
+  contact     String
+  location    String
+  tasks       Task[]   // Relation to Task
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DeliveryPersonnel {
+  id          Int      @id @default(autoincrement())
+  name        String
+  contact     String
+  deliveries  Delivery[] // Relation to Delivery
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
